@@ -1,21 +1,21 @@
+
 const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
 const path = require('path');
-const planetRoutes = require('./routes/planetRoutes');
+const planetRoutes = require('./routes/planetRoutes'); // путь к твоим маршрутам
 
 const app = express();
 
-app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.use('/api/planets', planetRoutes);
+// Подключаем маршруты
+app.use(planetRoutes); // так как маршруты уже с /api/planets
 
-app.use(express.static(path.join(__dirname, '../frontend')));
+// Тестовый маршрут
+app.get('/', (req, res) => res.send('Planet CRUD API działa!'));
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+// Запуск сервера
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
-
-const PORT = 3000;
-app.listen(PORT, () => console.log(`🌍 Server działa: http://localhost:${PORT}`));
