@@ -1,38 +1,71 @@
-<!DOCTYPE html>
-<html lang="pl">
+<!doctype html>
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Planet CRUD</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <title>Planet CRUD</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    input, button { padding: 6px; margin: 4px 0; }
+    form { max-width: 600px; }
+  </style>
 </head>
 <body>
-<h1>Planet CRUD</h1>
+  <h1>Planets</h1>
 
-<form id="planetForm">
-  <input type="hidden" id="planetId">
-  <input type="text" id="name" placeholder="Name" required>
-  <input type="text" id="system" placeholder="System" required>
-  <input type="text" id="climate" placeholder="Climate" required>
-  <input type="number" id="population" placeholder="Population" required>
-  <button type="submit">Save</button>
-</form>
+  <form id="planetForm">
+    <input type="hidden" id="planetId" />
+    <div>
+      <label>Name</label><br />
+      <input id="name" required />
+    </div>
+    <div>
+      <label>System</label><br />
+      <input id="system" />
+    </div>
+    <div>
+      <label>Climate</label><br />
+      <input id="climate" />
+    </div>
+    <div>
+      <label>Population</label><br />
+      <input id="population" type="number" />
+    </div>
+    <div>
+      <label>Surface type</label><br />
+      <input id="surface_type" />
+    </div>
+    <div>
+      <label>Diameter (km)</label><br />
+      <input id="diameter" type="number" min="0" />
+    </div>
+    <div>
+      <label>Orbital period (days)</label><br />
+      <input id="orbital_period" type="number" min="0" />
+    </div>
+    <div>
+      <button type="submit" id="saveBtn">Save</button>
+      <button type="button" id="cancelBtn">Cancel</button>
+    </div>
+  </form>
 
-<div id="message" style="margin-bottom:10px; color: green;"></div>
+  <table id="planetsTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>System</th>
+        <th>Climate</th>
+        <th>Population</th>
+        <th>Surface</th>
+        <th>Diameter</th>
+        <th>Orbital period</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-<table id="planetTable">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>System</th>
-      <th>Climate</th>
-      <th>Population</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<script src="script.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
