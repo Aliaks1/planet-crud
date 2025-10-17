@@ -1,91 +1,126 @@
-const api = 'http://localhost:3000/api/planets';
 const form = document.getElementById('planetForm');
-const table = document.querySelector('#planetTable tbody');
-const message = document.getElementById('message'); // элемент для уведомлений
+const planetsTableBody = document.querySelector('#planetsTable tbody');
+const planetIdInput = document.getElementById('planetId');
+const nameInput = document.getElementById('name');
+const systemInput = document.getElementById('system');
+const climateInput = document.getElementById('climate');
+const populationInput = document.getElementById('population');
+const surfaceInput = document.getElementById('surface_type');
+const diameterInput = document.getElementById('diameter');
+const orbitalInput = document.getElementById('orbital_period');
+const cancelBtn = document.getElementById('cancelBtn');
 
-function showMessage(text) {
-  message.textContent = text;
-  setTimeout(() => { message.textContent = ''; }, 3000);
+async function loadPlanets() {
+  const res = await fetch('/api/planets');
+  const data = await res.json();
+  renderList(data);
 }
 
-form.addEventListener('submit', async e => {
+function renderList(planets) {
+  planetsTableBody.innerHTML = '';
+  planets.forEach(p => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${p.name ?? ''}</td>
+      <td>${p.system ?? ''}</td>
+      <td>${p.climate ?? ''}</td>
+      <td>${p.population ?? ''}</td>
+      <td>${p.surface_type ?? ''}</td>
+      <td>${p.diameter ?? ''}</td>
+      <td>${p.orbital_period ?? ''}</td>
+      <td>
+        <button data-id="${p.id}" class="edit">Edit</button>
+        <button data-id="${p.id}" class="delete">Delete</button>
+      </td>
+    `;
+    planetsTableBody.appendChild(row);
+  });
+  attachButtons();
+}
+
+function attachButtons() {
+  document.querySelectorAll('.edit').forEach(b => {
+    b.addEventListener('click', async () => {
+      const id = b.getAttribute('data-id');
+      const res = await fetch(`/api/planets/${id}`);
+      if (res.status !== 200) return alert('Not found');
+      const p = await res.json();
+      planetIdInput.value = p.id;
+      nameInput.value = p.name || '';
+      systemInput.value = p.system || '';
+      climateInput.value = p.climate || '';
+      populationInput.value = p.population || '';
+      surfaceInput.value = p.surface_type || '';
+      diameterInput.value = p.diameter || '';
+      orbitalInput.value = p.orbital_period || '';
+    });
+  });
+  document.querySelectorAll('.delete').forEach(b => {
+    b.addEventListener('click', async () => {
+      const id = b.getAttribute('data-id');
+      const ok = confirm('Delete planet?');
+      if (!ok) return;
+      const res = await fetch(`/api/planets/${id}`, { method: 'DELETE' });
+      if (res.status === 204) loadPlanets();
+      else alert('Delete failed');
+    });
+  });
+}
+
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
-
-  const id = document.getElementById('planetId').value;
-  const name = document.getElementById('name').value.trim();
-  const system = document.getElementById('system').value.trim();
-  const climate = document.getElementById('climate').value.trim();
-  const population = parseInt(document.getElementById('population').value);
-
-  if (!name  !system  !climate  isNaN(population)  population < 0) {
-    alert('Proszę wypełnić wszystkie pola poprawnie!');
-    return;
-  }
-
-  const data = { name, system, climate, population };
-
-  try {
-    if(id) {
-      await fetch(`${api}/${id}`, {
-        method:'PUT',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(data)
-      });
-      showMessage('Planet updated!');
+  const id = planetIdInput.value;
+  const payload = {
+    name: nameInput.value,
+    system: systemInput.value,
+    climate: climateInput.value,
+    population: populationInput.value ? Number(populationInput.value) : null,
+    surface_type: surfaceInput.value,
+    diameter: diameterInput.value ? Number(diameterInput.value) : null,
+    orbital_period: orbitalInput.value ? Number(orbitalInput.value) : null
+  };
+  if (id) {
+    const res = await fetch(`/api/planets/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.status === 200) {
+      resetForm();
+      loadPlanets();
     } else {
-      await fetch(api, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(data)
-      });
-      showMessage('Planet added!');
+      const err = await res.json();
+      alert(err.error || 'Update failed');
     }
-    document.getElementById('planetId').value='';
-    form.reset();
-    loadPlanets();
-  } catch (err) {
-    alert('Błąd podczas zapisu danych: ' + err.message);
+  } else {
+    const res = await fetch('/api/planets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.status === 201) {
+      resetForm();
+      loadPlanets();
+    } else {
+      const err = await res.json();
+      alert(err.error || 'Create failed');
+    }
   }
 });
 
-async function loadPlanets() {
-  try {
-    const res = await fetch(api);
-    const planets = await res.json();
-    table.innerHTML='';
-    planets.forEach(p => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${p.id}</td><td>${p.name}</td><td>${p.system}</td><td>${p.climate}</td><td>${p.population}</td>
-      <td><button onclick="edit(${p.id})">Edit</button> <button onclick="del(${p.id})">Delete</button></td>`;
-      table.appendChild(tr);
-    });
-  } catch (err) {
-    alert('Błąd podczas pobierania danych: ' + err.message);
-  }
-}
+cancelBtn.addEventListener('click', () => {
+  resetForm();
+});
 
-async function edit(id) {
-  try {
-    const res = await fetch(`${api}/${id}`);
-    const p = await res.json();
-    document.getElementById('planetId').value = p.id;
-    document.getElementById('name').value = p.name;
-    document.getElementById('system').value = p.system;
-    document.getElementById('climate').value = p.climate;
-    document.getElementById('population').value = p.population;
-  } catch (err) {
-    alert('Błąd podczas pobierania danych: ' + err.message);
-  }
-}
-
-async function del(id) {
-  try {
-    await fetch(`${api}/${id}`, { method:'DELETE' });
-    showMessage('Planet deleted!');
-    loadPlanets();
-  } catch (err) {
-    alert('Błąd podczas usuwania: ' + err.message);
-  }
+function resetForm() {
+  planetIdInput.value = '';
+  nameInput.value = '';
+  systemInput.value = '';
+  climateInput.value = '';
+  populationInput.value = '';
+  surfaceInput.value = '';
+  diameterInput.value = '';
+  orbitalInput.value = '';
 }
 
 loadPlanets();
